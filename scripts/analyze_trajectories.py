@@ -26,11 +26,7 @@ rc('text', usetex=True)
 
 FORMAT = '.pdf'
 
-def spec(N):                                             
-    t = np.linspace(-510, 510, N)                                              
-    return np.round(np.clip(np.stack([-t, 510-np.abs(t), t], axis=1), 0, 255)).astype("float32")/255
-
-PALLETE = spec(20)
+PALLETE = ['b', 'g', 'r', 'c', 'k', 'y', 'm'] * 100
 
 
 def collect_odometry_error_per_dataset(dataset_multierror_list,
@@ -99,19 +95,34 @@ def plot_odometry_error_per_dataset(dataset_rel_err, dataset_names, algorithm_na
             config_labels.append(plot_settings['algo_labels'][v])
             config_colors.append(plot_settings['algo_colors'][v])
 
-        fig = plt.figure(figsize=(12, 3))
+        fig = plt.figure(figsize=(6, 5))
         ax = fig.add_subplot(
-            121, xlabel='Distance traveled (m)',
+            211, xlabel='Distance traveled (m)',
             ylabel='Translation error (\%)')
         pu.boxplot_compare(ax, distances, [rel_err['trans_err_perc'][v] for v in algorithm_names],
                            config_labels, config_colors, legend=False)
         ax = fig.add_subplot(
-            122, xlabel='Distance traveled (m)', ylabel='Rotation error (deg / m)')
+            212, xlabel='Distance traveled (m)', ylabel='Rotation error (deg / m)')
         pu.boxplot_compare(ax, distances, [rel_err['rot_deg_per_m'][v] for v in algorithm_names],
                            config_labels, config_colors, legend=True)
         fig.tight_layout()
-        fig.savefig(output_dir+'/'+dataset_nm +
-                    '_trans_rot_error'+FORMAT, bbox_inches="tight", dpi=args.dpi)
+        fig.savefig(output_dir + '/' + dataset_nm +
+                    '_trans_rot_error_percent' + FORMAT, bbox_inches="tight", dpi=args.dpi)
+        plt.close(fig)
+
+        fig = plt.figure(figsize=(6, 5))
+        ax = fig.add_subplot(
+            211, xlabel='Distance traveled (m)',
+            ylabel='Translation error (m)')
+        pu.boxplot_compare(ax, distances, [rel_err['trans_err'][v] for v in algorithm_names],
+                           config_labels, config_colors, legend=False)
+        ax = fig.add_subplot(
+            212, xlabel='Distance traveled (m)', ylabel='Rotation error (deg)')
+        pu.boxplot_compare(ax, distances, [rel_err['ang_yaw_err'][v] for v in algorithm_names],
+                           config_labels, config_colors, legend=False)
+        fig.tight_layout()
+        fig.savefig(output_dir + '/' + dataset_nm +
+                    '_trans_rot_error' + FORMAT, bbox_inches="tight", dpi=args.dpi)
         plt.close(fig)
 
 
@@ -287,8 +298,16 @@ def plot_overall_odometry_errors(odo_err_col, algorithm_names, rel_e_distances,
     for et in odo_err_col:
         if et == 'rel_trans_perc':
             ylabel = 'Translation error (\%)'
+            show_legend = False
         elif et == 'rel_rot_deg_per_m':
-            ylabel = 'Rotation error (deg / m)'
+            ylabel = 'Yaw error (deg / m)'
+            show_legend = True
+        elif et == 'rel_trans':
+            ylabel = 'Translation error (m)'
+            show_legend = False
+        elif et == 'rel_yaw':
+            ylabel = 'Yaw error (deg)'
+            show_legend = False
         else:
             assert False
         cur_err = odo_err_col[et]
@@ -305,11 +324,11 @@ def plot_overall_odometry_errors(odo_err_col, algorithm_names, rel_e_distances,
         for alg in algorithm_names:
             errors.append([cur_err[alg][d] for d in distances])
 
-        fig = plt.figure(figsize=(12, 3))
+        fig = plt.figure(figsize=(6, 3))
         ax = fig.add_subplot(
             111, xlabel='Distance traveled [m]', ylabel=ylabel)
         pu.boxplot_compare(ax, distances, errors,
-                           labels, colors, legend=True)
+                           labels, colors, legend=show_legend)
         fig.tight_layout()
         fig.savefig(output_dir+'/' + 'overall_{}'.format(et)+FORMAT,
                     bbox_inches="tight", dpi=args.dpi)
@@ -593,8 +612,8 @@ if __name__ == '__main__':
 
     print(Fore.RED+">>> Collecting odometry errors per algorithms...")
     if args.overall_odometry_error:
-        rel_err_names = ['rel_trans_perc', 'rel_rot_deg_per_m']
-        rel_err_labels = ['Translation (\%)', 'Rotation (deg/meter)']
+        rel_err_names = ['rel_trans_perc', 'rel_rot_deg_per_m', 'rel_trans', 'rel_yaw']
+        rel_err_labels = ['Translation (\%)', 'Rotation (deg/meter)', 'Translation (m)', 'Rotation (deg)']
         all_odo_err = collect_odometry_error_per_algorithm(
             config_multierror_list, algorithms, rel_e_distances, rel_keys=rel_err_names)
         print(Fore.MAGENTA+'--- Plotting and writing overall odometry errors... ---')
