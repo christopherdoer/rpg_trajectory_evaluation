@@ -576,7 +576,7 @@ if __name__ == '__main__':
                             mt_error_d.abs_errors['rmse_trans_stats']['median']))
                 else:
                     cur_trans_rmse.append(
-                        "{:3.3f}, {:3.3f} ({:3.3f} - {:3.3f})".format(
+                        "{:3.3f}, {:3.3f}, ({:3.3f}-{:3.3f})".format(
                             mt_error_d.abs_errors['rmse_trans_stats']['mean'],
                             mt_error_d.abs_errors['rmse_trans_stats']['median'],
                             mt_error_d.abs_errors['rmse_trans_stats']['min'],

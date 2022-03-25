@@ -58,6 +58,9 @@ def write_tex_table(list_values, rows, cols, outfn):
 
     assert len(rows) >= 1
     assert len(cols) >= 1
+    
+    # limit file path length
+    outfn = outfn[:200]
 
     with open(outfn, 'w') as f:
         # write header
